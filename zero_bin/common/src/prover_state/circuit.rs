@@ -13,7 +13,7 @@ use crate::parsing::{parse_range_exclusive, RangeParseError};
 /// Number of tables defined in plonky2.
 ///
 /// TODO: This should be made public in the evm_arithmetization crate.
-pub(crate) const NUM_TABLES: usize = 9;
+pub const NUM_TABLES: usize = 9;
 
 /// New type wrapper for [`Range`] that implements [`FromStr`] and [`Display`].
 ///

@@ -21,6 +21,7 @@ use paladin::{
     config::{Config, Serializer},
     runtime::Runtime,
 };
+
 // use leader::init;
 use tracing::{debug, error, info, warn};
 use zero_bin_common::prover_state;
@@ -37,29 +38,27 @@ async fn main() -> Result<()> {
 
     // Load in the environment
     debug!("Loading dotenv");
-    dotenv().ok();
-
+    leader::init::load_dotenvy_vars_if_present();
     leader::init::tracing();
 
-    // Loading the logger
-    // debug!("Loading env_logger");
-    // let mut builder = env_logger::Builder::from_default_env();
-    // builder.target(env_logger::Target::Stdout); // Redirect logs to stdout
-    // builder.init();
-    // debug!("EnvLogger setup");
-
-    // Initialize the tracing (stolen from Leader Crate's init function)
-    // This will initialize a lot of the internal logging, however
-    // we will utilize the standard log for the persistent-leader.
-    // debug!("Initializing the `tracing` logger");
-    // init::tracing();
+    if env::var_os(leader::init::EVM_ARITH_VER_KEY).is_none() {
+        // Safety:
+        // - we're early enough in main that nothing else should race
+        unsafe {
+            env::set_var(
+                leader::init::EVM_ARITH_VER_KEY,
+                // see build.rs
+                env!("EVM_ARITHMETIZATION_PACKAGE_VERSION"),
+            );
+        }
+    };
 
     //------------------------------------------------------------------------
     // Request queue
     //------------------------------------------------------------------------
 
     info!("Initializing the request queue");
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<ProveBlocksInput>(50);
+    let (mut tx, mut rx) = tokio::sync::mpsc::channel::<ProveBlocksInput>(50);
 
     // Store it in a Data for server
     let post_queue = web::Data::new(tx);
@@ -79,17 +78,7 @@ async fn main() -> Result<()> {
             paladin::config::Runtime::InMemory => {
                 info!("InMemory runtime, initializing a prover_state_manager");
                 let psm = psm::load_psm_from_env();
-                info!("Overwriting TableLoadStrategy to Monolothic due InMemory runtime");
-                let psm = psm.with_load_strategy(prover_state::TableLoadStrategy::Monolithic);
                 info!("Attempting to initialize the Prover State Manager.");
-                match PathBuf::from("circuits").exists() {
-                    true => {
-                        info!("Able to locate pre-generated circuits directory, still may take a while to load");
-                    }
-                    false => {
-                        warn!("Unable to locate a circuits directory with pre-generated circuits.  Generation will likely take a long time.");
-                    }
-                }
 
                 match psm.initialize() {
                     Ok(_) => {

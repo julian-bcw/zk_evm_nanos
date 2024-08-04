@@ -1,14 +1,16 @@
 //! This module helps with creating the [ProverStateManager]
 
-use std::env;
+use std::{default, env::{self, VarError}};
 
 use tracing::{error, info, warn};
 use zero_bin_common::prover_state::{
-    circuit::CircuitConfig, CircuitPersistence, ProverStateManager, TableLoadStrategy,
+    circuit::{Circuit, CircuitConfig, CircuitSize, NUM_TABLES}, CircuitPersistence, ProverStateManager, TableLoadStrategy,
 };
 
 pub const PSM_CIRCUIT_TABLE_LOAD_STRAT_ENVKEY: &str = "PSM_TABLE_LOAD_STRAT";
 pub const PSM_CIRCUIT_PERSISTENCE_ENVKEY: &str = "PSM_CIRCUIT_PERSISTENCE";
+
+use core::str::FromStr;
 
 pub fn load_psm_from_env() -> ProverStateManager {
     let tbl_load_strat = match env::var(PSM_CIRCUIT_TABLE_LOAD_STRAT_ENVKEY) {
@@ -63,8 +65,29 @@ pub fn load_psm_from_env() -> ProverStateManager {
         }
     };
 
+    // Create the circuits
+    info!("Creating default circuits (as baseline)");
+    let mut circuits = CircuitConfig::default();
+    for tbl in 0..NUM_TABLES {
+        let circuit = Circuit::from(tbl);
+        let circuit_envkey = circuit.as_env_key();
+        match std::env::var(circuit_envkey) {
+            Ok(item) => {
+                match CircuitSize::from_str(&item) {
+                    Ok(size) => {
+                        info!("Modifying `{}` circuit to `{}`", circuit, size);
+                        circuits.set_circuit_size(circuit, size)
+                    },
+                    Err(err) => panic!("Failed to parse Range: {}", err),
+                }
+            },
+            Err(VarError::NotPresent) => warn!("Missing circuit envkey: {}", circuit_envkey),
+            Err(VarError::NotUnicode(os_string)) => warn!("Invalid circuit envkey variable: `{}` -> {:?} ", circuit_envkey, os_string),
+        }
+    }
+
     ProverStateManager {
-        circuit_config: CircuitConfig::default(),
+        circuit_config: circuits,
         persistence,
     }
 }

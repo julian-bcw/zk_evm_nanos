@@ -5,11 +5,10 @@ use anyhow::Result;
 use clap::Parser;
 use cli::Command;
 use client::RpcParams;
-use dotenvy::dotenv;
 use ops::register;
 use paladin::runtime::Runtime;
 use proof_gen::proof_types::GeneratedBlockProof;
-use tracing::{info, warn};
+use tracing::info;
 use zero_bin_common::block_interval::BlockInterval;
 
 use crate::client::{client_main, ProofParams};
@@ -20,7 +19,9 @@ mod http;
 mod init;
 mod stdio;
 
-const EVM_ARITH_VER_KEY: &str = "EVM_ARITHMETIZATION_PKG_VER";
+pub use init::load_dotenvy_vars_if_present;
+
+pub use init::EVM_ARITH_VER_KEY;
 
 fn get_previous_proof(path: Option<PathBuf>) -> Result<Option<GeneratedBlockProof>> {
     if path.is_none() {
@@ -129,14 +130,4 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-/// Attempt to load in the local `.env` if present and set any environment
-/// variables specified inside of it.
-///
-/// To keep things simple, any IO error we will treat as the file not existing
-/// and continue moving on without the `env` variables set.
-fn load_dotenvy_vars_if_present() {
-    match dotenv() {
-        Ok(_) | Err(dotenvy::Error::Io(io::Error { .. })) => (),
-        Err(e) => warn!("Found local `.env` file but was unable to parse it! (err: {e})",),
-    }
-}
+

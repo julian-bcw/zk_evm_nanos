@@ -1692,6 +1692,7 @@ dependencies = [
  "alloy",
  "anyhow",
  "async-channel",
+ "cargo_metadata",
  "chrono",
  "clap",
  "dotenvy",
