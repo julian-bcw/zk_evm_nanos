@@ -21,7 +21,6 @@ use paladin::{
     config::{Config, Serializer},
     runtime::Runtime,
 };
-
 // use leader::init;
 use tracing::{debug, error, info, warn};
 use zero_bin_common::prover_state;
