@@ -34,7 +34,14 @@ pub enum BlockSource {
     LocalFile {
         /// Filepath to local witness.
         filepath: String,
+    },
+    Gcs {
+        /// The name of the file (gcs obj) to be used
+        filepath: String,
+        /// The name of the bucket to be used
+        bucket: String,
     }
+
 }
 
 unsafe impl Send for BlockSource {}

@@ -3,6 +3,10 @@ use std::{fs, path::Path};
 
 use alloy::rpc::types::{BlockId, BlockNumberOrTag};
 use anyhow::Error;
+use google_cloud_storage::{
+    client::{Client, ClientConfig},
+    http::objects::{download::Range, get::GetObjectRequest},
+};
 use prover::{BlockProverInput, ProverInput};
 use rpc::{benchmark_prover_input, retry::build_http_retry_provider, BenchmarkedProverInput};
 use serde::Deserialize;
@@ -18,6 +22,7 @@ use super::input::BlockSource;
 pub enum FetchError {
     RpcFetchError(Error),
     LocalFileErr(Error),
+    GcsErr(Error)
 }
 
 impl std::fmt::Display for FetchError {
@@ -146,14 +151,9 @@ pub async fn fetch(source: &BlockSource) -> Result<BenchmarkedProverInput, Fetch
         }
         BlockSource::LocalFile { filepath } => match fs::read_to_string(filepath) {
             Ok(string) => {
-                let des = &mut serde_json::Deserializer::from_str(&string);
-
-                let proverinput = match Vec::<BlockProverInput>::deserialize(des) {
-                    Ok(blocks) => ProverInput { blocks },
-                    Err(err) => {
-                        tracing::error!("Failed to deserialize vec of BlockProverInput: {}", err);
-                        return Err(FetchError::LocalFileErr(err.into()));
-                    }
+                let proverinput = match from_string(&string) {
+                    Ok(proverinput) => proverinput,
+                    Err(err) => return Err(FetchError::LocalFileErr(err.into())),
                 };
 
                 Ok(BenchmarkedProverInput {
@@ -166,5 +166,55 @@ pub async fn fetch(source: &BlockSource) -> Result<BenchmarkedProverInput, Fetch
                 Err(FetchError::LocalFileErr(err.into()))
             }
         },
+        BlockSource::Gcs { filepath, bucket } => {
+            let client_config = ClientConfig::default();
+
+            let client = Client::new(client_config);
+
+            let req = GetObjectRequest {
+                bucket: bucket.clone(),
+                object: filepath.clone(),
+                ..GetObjectRequest::default()
+            };
+
+            let range = Range::default();
+
+            let string = match client.download_object(&req, &range).await {
+                Ok(byte_data) => match String::from_utf8(byte_data) {
+                    Ok(string) => string,
+                    Err(err) => {
+                        tracing::error!("Failed to convert returned data into utf8 string: {}", err);
+                        return Err(FetchError::GcsErr(err.into()));
+                    },
+                },
+                Err(err) => {
+                    tracing::error!("Failed to pull witness from GCS: {}", err);
+                    return Err(FetchError::GcsErr(err.into()));
+                },
+            };
+
+            match from_string(&string) {
+                Ok(proverinput) => Ok(BenchmarkedProverInput {
+                    proverinput,
+                    fetch_times: Vec::new()
+                }),
+                Err(err) => {
+                    tracing::error!("Failed to deserialize string into ProverInput: {}", err);
+                    Err(FetchError::GcsErr(err.into()))
+                },
+            }
+        }
+    }
+}
+
+fn from_string(string: &str) -> Result<ProverInput, Error> {
+    let des = &mut serde_json::Deserializer::from_str(&string);
+
+    match Vec::<BlockProverInput>::deserialize(des) {
+        Ok(blocks) => Ok(ProverInput { blocks }),
+        Err(err) => {
+            tracing::error!("Failed to deserialize vec of BlockProverInput: {}", err);
+            Err(err.into())
+        }
     }
 }
