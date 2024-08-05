@@ -24,7 +24,7 @@ on:
         type: string
       memory:
         description: 'The memory set for the workers'
-        default: '32Gi'
+        default: '60Gi'
         required: false
         type: string
       block_start:

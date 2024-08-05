@@ -138,10 +138,10 @@ hull:
               resources:
                 limits:
                   cpu: 5
-                  memory: 32Gi
+                  memory: 60Gi
                 requests:
                   cpu: 5
-                  memory: 32Gi
+                  memory: 60Gi
           affinity:
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
