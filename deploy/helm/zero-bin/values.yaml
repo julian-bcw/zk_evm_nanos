@@ -102,6 +102,8 @@ hull:
                 repository: _HT!us.gcr.io/immutable-418115/{{ (index . "$").Values.hull.config.specific.workerImageName }}
                 tag: _HT*hull.config.specific.version
               imagePullPolicy: Always
+              command:
+                - worker
               env:
                 AMQP_URI:
                   valueFrom: 
@@ -118,24 +120,28 @@ hull:
                 ARITHMETIC_CIRCUIT_SIZE:
                   value: 16..21
                 BYTE_PACKING_CIRCUIT_SIZE:
-                  value: 9..21
+                  value: 8..21
                 CPU_CIRCUIT_SIZE:
-                  value: 12..23
+                  value: 8..21
                 KECCAK_CIRCUIT_SIZE:
-                  value: 14..19
+                  value: 4..21
                 KECCAK_SPONGE_CIRCUIT_SIZE:
-                  value: 9..15
+                  value: 8..17
                 LOGIC_CIRCUIT_SIZE:
-                  value: 12..18
+                  value: 4..21
                 MEMORY_CIRCUIT_SIZE:
                   value: 17..25
+                MEMORY_BEFORE_CIRCUIT_SIZE:
+                  value: 16..24
+                MEMORY_AFTER_CIRCUIT_SIZE:
+                  value: 7..24
               resources:
                 limits:
                   cpu: 5
-                  memory: 32Gi
+                  memory: 60Gi
                 requests:
                   cpu: 5
-                  memory: 32Gi
+                  memory: 60Gi
           affinity:
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:

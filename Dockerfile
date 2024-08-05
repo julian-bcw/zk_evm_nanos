@@ -31,6 +31,8 @@ ARG PROFILE=release
 # forward the docker argument so that the script below can read it
 ENV PROFILE=${PROFILE}
 
+ENV RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld'
+
 # Build the application.
 RUN \
     # mount the repository so we don't have to COPY it in
@@ -83,18 +85,17 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # this keeps this build target agnostic to the build profile
-COPY --from=build ["/output/rpc", "/output/leader", "/output/worker", "/output/verifier", "/usr/local/bin/"]
+COPY --from=build ["/output/rpc", "/output/leader", "/output/coordinator", "/output/worker", "/output/verifier", "/usr/local/bin/"]
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
-ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    user
-USER user
-
+# ARG UID=10001
+# RUN adduser \
+#     --disabled-password \
+#     --gecos "" \
+#     --home "/nonexistent" \
+#     --shell "/sbin/nologin" \
+#     --no-create-home \
+#     --uid "${UID}" \
+#     user
+# USER user
