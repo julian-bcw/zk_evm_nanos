@@ -102,6 +102,8 @@ hull:
                 repository: _HT!us.gcr.io/immutable-418115/{{ (index . "$").Values.hull.config.specific.workerImageName }}
                 tag: _HT*hull.config.specific.version
               imagePullPolicy: Always
+              command:
+                - worker
               env:
                 AMQP_URI:
                   valueFrom: 
