@@ -31,6 +31,10 @@ pub enum BlockSource {
         max_retries: Option<u32>,
         rpc_type: Option<RpcType>,
     },
+    LocalFile {
+        /// Filepath to local witness.
+        filepath: String,
+    }
 }
 
 unsafe impl Send for BlockSource {}
@@ -94,6 +98,7 @@ impl ProveBlocksInput {
                 Ok(BlockInterval::Range(range)) => Some(range.end - range.start + 1),
                 Ok(_) | Err(_) => None,
             },
+            _ => None,
         }
     }
 

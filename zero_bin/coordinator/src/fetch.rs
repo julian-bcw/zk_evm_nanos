@@ -1,7 +1,11 @@
 //! This is useful for fetching [ProverInput] per block
+use std::{fs, path::Path};
+
 use alloy::rpc::types::{BlockId, BlockNumberOrTag};
 use anyhow::Error;
+use prover::{BlockProverInput, ProverInput};
 use rpc::{benchmark_prover_input, retry::build_http_retry_provider, BenchmarkedProverInput};
+use serde::Deserialize;
 use tracing::info;
 use zero_bin_common::block_interval::BlockInterval;
 
@@ -13,6 +17,7 @@ use super::input::BlockSource;
 #[derive(Debug)]
 pub enum FetchError {
     RpcFetchError(Error),
+    LocalFileErr(Error),
 }
 
 impl std::fmt::Display for FetchError {
@@ -100,7 +105,7 @@ pub async fn fetch(source: &BlockSource) -> Result<BenchmarkedProverInput, Fetch
                 max_retries.unwrap_or(0),
             ));
 
-            let block_iv = match BlockInterval::new(&block_interval) {
+            let block_iv = match BlockInterval::new(block_interval) {
                 Ok(bi) => bi,
                 Err(err) => panic!(
                     "Failed to create BlockInterval from {}: {}",
@@ -109,7 +114,7 @@ pub async fn fetch(source: &BlockSource) -> Result<BenchmarkedProverInput, Fetch
             };
 
             let checkpoint_block_id = match checkpoint.unwrap_or_default() {
-                Checkpoint::Constant(block_id) => block_id.clone(),
+                Checkpoint::Constant(block_id) => block_id,
                 Checkpoint::BlockNumberNegativeOffset(offset) => match &block_iv {
                     BlockInterval::FollowFrom {
                         start_block,
@@ -139,5 +144,27 @@ pub async fn fetch(source: &BlockSource) -> Result<BenchmarkedProverInput, Fetch
                 Err(err) => Err(FetchError::RpcFetchError(err)),
             }
         }
+        BlockSource::LocalFile { filepath } => match fs::read_to_string(filepath) {
+            Ok(string) => {
+                let des = &mut serde_json::Deserializer::from_str(&string);
+
+                let proverinput = match Vec::<BlockProverInput>::deserialize(des) {
+                    Ok(blocks) => ProverInput { blocks },
+                    Err(err) => {
+                        tracing::error!("Failed to deserialize vec of BlockProverInput: {}", err);
+                        return Err(FetchError::LocalFileErr(err.into()));
+                    }
+                };
+
+                Ok(BenchmarkedProverInput {
+                    proverinput,
+                    fetch_times: Vec::new(),
+                })
+            }
+            Err(err) => {
+                tracing::error!("Failed to read local file: {}", filepath);
+                Err(FetchError::LocalFileErr(err.into()))
+            }
+        },
     }
 }
