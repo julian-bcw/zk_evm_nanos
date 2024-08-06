@@ -38,9 +38,13 @@ async fn main() -> Result<()> {
 
     let args = Cli::parse();
 
-    args.prover_state_config
-        .into_prover_state_manager()
-        .initialize()?;
+    info!("Worker CLI: {:?}", args);
+
+    let psm = args.prover_state_config.into_prover_state_manager();
+
+    info!("Worker ProverStateManager: {:?}", psm);
+    
+    psm.initialize()?;
 
     let runtime = WorkerRuntime::from_config(&args.paladin, register()).await?;
     //const IPC_ROUTING_KEY: Uuid = Uuid::max(); // copied over from paladin-core's
