@@ -38,6 +38,8 @@ async fn main() -> Result<()> {
 
     let args = Cli::parse();
 
+    info!("Worker CLI: {:?}", args);
+
     let psm = args.prover_state_config.into_prover_state_manager();
 
     info!("Worker ProverStateManager: {:?}", psm);
