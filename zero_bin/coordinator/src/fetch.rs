@@ -153,7 +153,10 @@ pub async fn fetch(source: &BlockSource) -> Result<BenchmarkedProverInput, Fetch
             Ok(string) => {
                 let proverinput = match from_string(&string) {
                     Ok(proverinput) => proverinput,
-                    Err(err) => return Err(FetchError::LocalFileErr(err.into())),
+                    Err(err) => {
+                        tracing::error!("Failed to convert file into ProverInput: {}", err);
+                        return Err(FetchError::LocalFileErr(err.into()))
+                    },
                 };
 
                 Ok(BenchmarkedProverInput {
