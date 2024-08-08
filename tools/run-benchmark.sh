@@ -80,7 +80,20 @@ else
   DISK_TYPE="pd-ssd"
 fi
 
-gcloud container node-pools update $NODE_POOL_NAME --cluster=$CLUSTER_NAME --machine-type=$machine_type --disk-type=$DISK_TYPE --region=$REGION
+# Get current machine type of the nodepool
+CURRENT_MACHINE_TYPE=$(gcloud container node-pools describe $NODE_POOL_NAME \
+    --cluster $CLUSTER_NAME \
+    --region $REGION \
+    --format='value(config.machineType)')
+
+# Check if the current machine type matches the new machine type
+if [ "$CURRENT_MACHINE_TYPE" == "$machine_type" ]; then
+  echo "The nodepool is already using the machine type $machine_type. No update needed."
+else
+  # Scale down the pods first to make the node pool update quicker
+  kubectl scale deployment/$W_DEPLOYMENT_NAME --replicas=0
+  gcloud container node-pools update $NODE_POOL_NAME --cluster=$CLUSTER_NAME --machine-type=$machine_type --disk-type=$DISK_TYPE --region=$REGION
+fi
 
 ########################## 
 # Get CPU family of node #
