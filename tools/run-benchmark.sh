@@ -91,7 +91,7 @@ if [ "$CURRENT_MACHINE_TYPE" == "$machine_type" ]; then
   echo "The nodepool is already using the machine type $machine_type. No update needed."
 else
   # Scale down the pods first to make the node pool update quicker
-  kubectl scale deployment/$W_DEPLOYMENT_NAME --replicas=0
+  kubectl scale deployment/$W_DEPLOYMENT_NAME --replicas=0 -n zkevm
   gcloud container node-pools update $NODE_POOL_NAME --cluster=$CLUSTER_NAME --machine-type=$machine_type --disk-type=$DISK_TYPE --region=$REGION
 fi
 
