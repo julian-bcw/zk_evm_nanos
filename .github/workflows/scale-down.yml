@@ -32,6 +32,6 @@ jobs:
           cluster_name: 'immutable-prod'
           location: 'us-central1'
 
-      - name: Run benchmark script
+      - name: Scale down pods
         run: >
           kubectl scale --replicas=0 deployment/zero-bin-worker -n zkevm
