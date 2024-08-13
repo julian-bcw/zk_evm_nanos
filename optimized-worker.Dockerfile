@@ -52,7 +52,7 @@ set -eux
 cd /src
 
 mkdir -p /artifacts/pgo-profiles
-cp -r target/pgo-profiles/* /artifacts/pgo-profiles
+cp -r pgo-profiles/* /artifacts/pgo-profiles
 
 # use the cache mount
 # (we will not be able to to write to e.g `/src/target` because it is bind-mounted)
