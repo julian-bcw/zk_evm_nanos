@@ -32,6 +32,8 @@ WORKDIR /src
 
 COPY . .
 
+ENV RUSTFLAGS='-C target-feature=+crt-static -C target-cpu=native -Zlinker-features=-lld'
+
 # Build the application.
 RUN \
     # cache artifacts and the cargo registry to speed up subsequent builds
@@ -40,7 +42,7 @@ RUN \
     <<EOF
 set -eux
 
-cargo pgo build -- --locked --bin worker
+cargo pgo build -- --locked --bin worker --target=x86_64-unknown-linux-gnu
 
 EOF
 
