@@ -90,6 +90,8 @@ The example below proves blocks [1,10] using the RPC function listed in ZeroBin,
 }
 ```
 
+
+
 ```json
 {
   "run_name": "run",
@@ -112,65 +114,15 @@ The example below proves blocks [1,10] using the RPC function listed in ZeroBin,
 ```json
 {
   "run_name": "run",
-  "block_interval": "3..=10",
   "block_source": {
-    "ZeroBinRpc": {"rpc_url": "http://35.208.84.178:8545/"}
+    "Rpc": {
+      "rpc_url": "http://35.208.68.173:8545",
+      "block_interval": "3..=10",
+      "rpc_type": "Jerigon",
+    }
   },
   "benchmark_output": {
     "LocalCsv": {"file_name": "test.csv"}
-  }
-}
-```
-
-An example not recording the proofs, and posting the results to a google cloud storage bucket.
-
-```json
-{
-  "run_name": "run",
-  "block_interval": "3..=5",
-  "block_source": {
-    "ZeroBinRpc": {"rpc_url": "http://35.208.84.178:8545/"}
-  },
-  "benchmark_output": {
-    "GoogleCloudStorageCsv": {"file_name": "test.csv", "bucket": "zkevm-csv"}
-  }
-}
-```
-
-In this example, we run the experiment for just one minute.
-
-```json
-{
-  "block_interval": "3..=5",
-  "block_source": {
-    "ZeroBinRpc": {"rpc_url": "http://35.208.84.178:8545/"}
-  },
-  "benchmark_output": {
-    "GoogleCloudStorageCsv": {"file_name": "test.csv", "bucket": "zkevm-csv"}
-  }
-}
-```
-
-```json
-{
-  "block_interval": "3..=5",
-  "block_source": {
-    "ZeroBinRpc": {"rpc_url": "http://35.208.84.178:8545/"}
-  },
-  "benchmark_output": {
-    "GoogleCloudStorageCsv": {"file_name": "test.csv", "bucket": "zkevm-csv"}
-  }
-}
-```
-
-```json
-{
-  "block_interval": "3..=5",
-  "block_source": {
-    "ZeroBinRpc": {"rpc_url": "http://35.208.84.178:8545/"}
-  },
-  "benchmark_output": {
-    "GoogleCloudStorageCsv": {"file_name": "2hr_parallel.csv", "bucket": "zkevm-csv"}
   }
 }
 ```
