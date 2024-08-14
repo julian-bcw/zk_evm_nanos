@@ -17,6 +17,9 @@ pub struct CliProverConfig {
 }
 
 impl Default for CliProverConfig {
+    /// Built to copy the `default_value_t` clap arguments.  
+    /// 
+    /// NOTE: May need to be periodically updated.
     fn default() -> Self {
         Self {
             max_cpu_len_log: 20,

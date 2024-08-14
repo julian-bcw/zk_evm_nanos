@@ -76,7 +76,7 @@ impl ProveBlocksInput {
     #[inline]
     pub fn get_prover_config(&self) -> ProverConfig {
         match &self.prover_config {
-            Some(prover_config) => prover_config.clone(),
+            Some(prover_config) => *prover_config,
             None => ProverConfig::from(CliProverConfig::default()),
         }
     }
