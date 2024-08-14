@@ -1,0 +1,6 @@
+{
+"RunConfig": {
+"Memory": "48G"
+},
+"BaseVolumeSz": "32g"
+}
