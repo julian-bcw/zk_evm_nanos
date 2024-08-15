@@ -1,5 +1,5 @@
 //! This is useful for fetching [ProverInput] per block
-use std::{fs, path::Path};
+use std::fs;
 
 use alloy::rpc::types::{BlockId, BlockNumberOrTag};
 use anyhow::Error;

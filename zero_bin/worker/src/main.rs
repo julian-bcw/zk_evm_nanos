@@ -38,15 +38,18 @@ async fn main() -> Result<()> {
 
     let args = Cli::parse();
 
-    info!("Worker CLI: {:?}", args);
-
     let psm = args.prover_state_config.into_prover_state_manager();
 
     info!("Worker ProverStateManager: {:?}", psm);
     
     psm.initialize()?;
 
+    
+
     let runtime = WorkerRuntime::from_config(&args.paladin, register()).await?;
+
+    info!("Built WorkerRuntime");
+
     //const IPC_ROUTING_KEY: Uuid = Uuid::max(); // copied over from paladin-core's
     // WorkerRuntime code in src/runtime/mod.rs let cancel_message: WorkerIpc =
     // WorkerIpc::ExecutionError {    routing_key: IPC_ROUTING_KEY,
@@ -61,6 +64,8 @@ async fn main() -> Result<()> {
         //runtime_canceler.publish(&cancel_message).await.unwrap();
         r.store(false, Ordering::SeqCst);
     });
+
+    info!("Building runtime loop");
     let runtime_task = task::spawn(async move {
         match runtime.main_loop(Some(running)).await {
             Ok(()) => info!("Worker main loop ended..."),
