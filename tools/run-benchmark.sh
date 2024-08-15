@@ -3,8 +3,8 @@ set -e
 set -o pipefail
 
 # Check if the correct number of arguments are provided
-if [ "$#" -ne 10 ]; then
-  echo "Usage: $0 <machine_type> <num_workers> <cpu_request> <cpu_limit> <memory_request> <memory_limit> <block_start> <block_end> <other_args> <rpc_endpoint>"
+if [ "$#" -ne 12 ]; then
+  echo "Usage: $0 <machine_type> <num_workers> <cpu_request> <cpu_limit> <memory_request> <memory_limit> <block_start> <block_end> <other_args> <rpc_endpoint> <batch_size> <cpu_cycles>"
   exit 1
 fi
 
@@ -42,6 +42,8 @@ block_start=$7
 block_end=$8
 other_args=$9 # will be appended to the csv file name
 RPC_ENDPOINT=${10}
+batch_size=${11}
+cpu_cycles=${12}
 
 ######################
 # Do some validation #
@@ -201,8 +203,8 @@ done
 
 # Build out the request parameters
 folder_name=$(printf "%s/%s" "$ENVIRONMENT" "$SUBFOLDER_NAME")
-csv_file_name=$(printf "%s.%s.%s.%s.%s.%scpu.%sworkers.csv" "$other_args" "$block_start" "$block_end" "$machine_type" "$CPU_PLATFORM" "$cpu_request" "$num_workers")
-post_body=$(printf '{"run_name":"%s","block_source":{"Rpc":{"rpc_url":"%s","block_interval":"%s..=%s"}},"benchmark_output":{"GoogleCloudStorageCsv":{"file_name":"%s/%s","bucket":"zkevm-csv"}},"prover_config":{"batch_size":10,"max_cpu_len_log":19,"save_inputs_on_error":false}}' "$csv_file_name" "$RPC_ADDRESS" "$block_start" "$block_end" "$folder_name" "$csv_file_name")
+csv_file_name=$(printf "%s.%s.%s.%s.%s.%scpu.%sworkers.%sbatch_size.%scpu_cycles.csv" "$other_args" "$block_start" "$block_end" "$machine_type" "$CPU_PLATFORM" "$cpu_request" "$num_workers" "$batch_size" "$cpu_cycles")
+post_body=$(printf '{"run_name":"%s","block_source":{"Rpc":{"rpc_url":"%s","block_interval":"%s..=%s"}},"benchmark_output":{"GoogleCloudStorageCsv":{"file_name":"%s/%s","bucket":"zkevm-csv"}},"prover_config":{"batch_size":%s,"max_cpu_len_log":%s,"save_inputs_on_error":false}}' "$csv_file_name" "$RPC_ADDRESS" "$block_start" "$block_end" "$folder_name" "$csv_file_name" "$batch_size" "$cpu_cycles")
 
 # Run the benchmark test
 echo "Triggering benchmark test..."

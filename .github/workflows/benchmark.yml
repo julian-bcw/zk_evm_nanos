@@ -27,13 +27,14 @@ on:
         default: '60Gi'
         required: false
         type: string
-      block_start:
-        description: 'The block number to start the range of blocks to prove'
+      block_range:
+        description: 'A comma separated values for the block range start and end to prove, in the following format "block_start,block_end". (Set to the same values to only prove 1 block)'
         required: true
+        default: '100,101'
         type: string
-      block_end:
-        description: 'The block number to end the range of blocks to prove. (Set to the same value as block_start to only prove 1 block)'
-        required: true
+      prover_configs:
+        description: 'A comma separated values for additional configs for the proving, in the following format "batch_size,cpu_cycles".'
+        default: '10,19'
         type: string
       other_args:
         description: 'Other text to append into the generated CSV file'
@@ -83,5 +84,11 @@ jobs:
           GCP_WORKLOAD_IDENTITY_ID: ${{ secrets.GCP_WORKLOAD_IDENTITY_ID }}
           GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           ENVIRONMENT: production
-        run: >
-          ./tools/run-benchmark.sh ${{ inputs.machine_type }} ${{ inputs.num_workers }} ${{ inputs.cpu_request }} ${{ inputs.cpu_limit }} ${{ inputs.memory }} ${{ inputs.memory }} ${{ inputs.block_start }} ${{ inputs.block_end }} ${{ inputs.other_args }} ${{ inputs.rpc_endpoint }}
+        run: |-
+          IFS=',' read -r block_start block_end <<< ${{ inputs.block_range }}
+          IFS=',' read -r batch_size cpu_cycles <<< ${{ inputs.prover_configs }}
+          echo "block_start: $block_start"
+          echo "block_end: $block_end"
+          echo "batch_size: $batch_size"
+          echo "cpu_cycles: $cpu_cycles"
+          ./tools/run-benchmark.sh ${{ inputs.machine_type }} ${{ inputs.num_workers }} ${{ inputs.cpu_request }} ${{ inputs.cpu_limit }} ${{ inputs.memory }} ${{ inputs.memory }} $block_start $block_end ${{ inputs.other_args }} ${{ inputs.rpc_endpoint }} $batch_size $cpu_cycles
