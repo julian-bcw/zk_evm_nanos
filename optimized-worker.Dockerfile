@@ -34,7 +34,7 @@ ARG PROFILE=release
 # forward the docker argument so that the script below can read it
 ENV PROFILE=${PROFILE}
 
-ENV RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld'
+ENV RUSTFLAGS='-C target-feature=+crt-static -C target-cpu=native -Zlinker-features=-lld'
 
 # Build the application.
 RUN \
@@ -56,7 +56,7 @@ cp -r pgo-profiles/* /artifacts/pgo-profiles
 
 # use the cache mount
 # (we will not be able to to write to e.g `/src/target` because it is bind-mounted)
-CARGO_TARGET_DIR=/artifacts cargo pgo optimize build -- --bin worker --locked "--profile=${PROFILE}"
+CARGO_TARGET_DIR=/artifacts cargo pgo optimize build -- --bin worker --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu
 
 # narrow the find call to SUBDIR because if we just copy out all executables
 # we will break the cache invariant
