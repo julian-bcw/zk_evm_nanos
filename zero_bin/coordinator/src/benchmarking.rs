@@ -53,8 +53,6 @@ pub struct BenchmarkingStats {
     pub proof_out_duration: Option<Duration>,
     /// The gas used by the block we proved
     pub gas_used: u64,
-    /// The gas used per transaction in the block in the original chain
-    pub gas_used_per_tx: Vec<u64>,
     /// The cumulative gas used by the block we proved.  None implies
     /// not filled in, not 0.
     pub cumulative_gas_used: Option<u64>,
@@ -103,7 +101,7 @@ impl BenchmarkingStats {
     #[allow(clippy::format_in_format_args)]
     pub fn as_csv_row(&self) -> String {
         format!(
-            "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \"{}\"",
+            "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
             self.block_number,
             self.n_txs,
             Self::unwrap_to_string(self.cumulative_n_txs),
@@ -120,11 +118,6 @@ impl BenchmarkingStats {
             self.gas_used,
             Self::unwrap_to_string(self.cumulative_gas_used),
             self.difficulty,
-            self.gas_used_per_tx
-                .iter()
-                .map(|gas| gas.to_string())
-                .collect::<Vec<String>>()
-                .join(";"),
         )
     }
 }

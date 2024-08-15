@@ -234,7 +234,6 @@ impl ManyProver {
                     agg_wait_duration: benchmark_block_proof.agg_wait_dur,
                     agg_duration: benchmark_block_proof.agg_dur,
                     gas_used: benchmark_block_proof.gas_used,
-                    gas_used_per_tx: benchmark_block_proof.gas_used_per_tx.clone(),
                     txproof_duration: benchmark_block_proof.proof_dur,
                     start_time: benchmark_block_proof.start_time,
                     end_time: benchmark_block_proof.end_time,

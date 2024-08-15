@@ -50,7 +50,6 @@ pub struct BenchmarkedGeneratedBlockProof {
     pub total_dur: Option<Duration>,
     pub n_txs: u64,
     pub gas_used: u64,
-    pub gas_used_per_tx: Vec<u64>,
     pub difficulty: u64,
     pub start_time: DateTime<Utc>,
     pub end_time: DateTime<Utc>,
@@ -101,14 +100,11 @@ impl BlockProverInput {
             batch_size,
         )?;
 
-        let n_txs = block_generation_inputs.len();
-        let gas_used = u64::try_from(other_data.b_data.b_meta.block_gas_used).expect("Overflow");
-        let gas_used_per_tx = block_generation_inputs
+        let n_txs: u64 = block_generation_inputs
             .iter()
-            .map(|tx| {
-                u64::try_from(tx.gas_used_after - tx.gas_used_before).expect("Overflow of gas")
-            })
-            .collect();
+            .map(|tx| tx.signed_txns.len() as u64)
+            .sum();
+        let gas_used = u64::try_from(other_data.b_data.b_meta.block_gas_used).expect("Overflow");
         let difficulty = other_data.b_data.b_meta.block_difficulty;
 
         let seg_ops = ops::SegmentProof {
@@ -203,7 +199,6 @@ impl BlockProverInput {
                 agg_dur: Some(agg_dur),
                 n_txs: n_txs as u64,
                 gas_used,
-                gas_used_per_tx,
                 difficulty: u64::try_from(difficulty).expect("Difficulty overflow"),
                 start_time,
                 end_time,
