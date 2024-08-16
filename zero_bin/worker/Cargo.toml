@@ -20,6 +20,12 @@ log = "0.4.21"
 # Local dependencies
 ops = { workspace = true }
 zero_bin_common = { workspace = true }
+coordinator = { workspace = true }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 jemallocator = "0.5.4"
+
+[features]
+default = ["ENV"]
+CLI = []
+ENV = []
