@@ -31,8 +31,6 @@ ARG PROFILE=release
 # forward the docker argument so that the script below can read it
 ENV PROFILE=${PROFILE}
 
-ENV RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld'
-
 # Build the application.
 RUN \
     # mount the repository so we don't have to COPY it in
@@ -48,9 +46,19 @@ set -eux
 # .cargo/config.toml
 cd /src
 
+# don't statically build the leader or coordinator
+ENV COMMON_RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld'
+
 # use the cache mount
 # (we will not be able to to write to e.g `/src/target` because it is bind-mounted)
-CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --all
+RUN RUSTFLAGS="${COMMON_RUSTFLAGS}" \
+    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin coordinator --bin leader
+
+# statically build the worker
+RUN RUSTFLAGS="${COMMON_RUSTFLAGS} -C target-feature=+crt-static" \
+    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin worker
+
+
 # narrow the find call to SUBDIR because if we just copy out all executables
 # we will break the cache invariant
 if [ "$PROFILE" = "dev" ]; then
@@ -62,8 +70,9 @@ fi
 # maxdepth because binaries are in the root
 # - other folders contain build scripts etc.
 mkdir /output
-find "/artifacts/$SUBDIR" \
-    -maxdepth 1 \
+find "/artifacts"
+find "/artifacts/x86_64-unknown-linux-gnu" \
+    -maxdepth 2 \
     -type f \
     -executable \
     -not -name '*.so' \
