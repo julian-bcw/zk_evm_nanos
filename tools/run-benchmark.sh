@@ -10,7 +10,7 @@ fi
 
 # CONSTANTS
 CLUSTER_NAME="immutable-prod"
-NODE_POOL_NAME="immutable-prod-zk"
+NODE_POOL_NAME="immutable-prod-zk2"
 NAMESPACE="zkevm"
 W_DEPLOYMENT_NAME="zero-bin-worker"
 W_CONTAINER_NAME="worker"
