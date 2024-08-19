@@ -24,12 +24,17 @@ RUN apt-get update && apt-get install -y \
     # for openssl
     libssl-dev \
     pkg-config \
+    # for static linking
+    clang-16 \
     # clean the image
     && rm -rf /var/lib/apt/lists/*
 
 ARG PROFILE=release
 # forward the docker argument so that the script below can read it
 ENV PROFILE=${PROFILE}
+
+# statically link the C runtime (but not openssl)
+ENV COMMON_RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld -C target-feature=+crt-static'
 
 # Build the application.
 RUN \
@@ -46,17 +51,10 @@ set -eux
 # .cargo/config.toml
 cd /src
 
-# don't statically build the leader or coordinator
-ENV COMMON_RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld'
-
 # use the cache mount
 # (we will not be able to to write to e.g `/src/target` because it is bind-mounted)
-RUN RUSTFLAGS="${COMMON_RUSTFLAGS}" \
-    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin coordinator --bin leader
-
-# statically build the worker
-RUN RUSTFLAGS="${COMMON_RUSTFLAGS} -C target-feature=+crt-static" \
-    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin worker
+CC=clang-16 RUSTFLAGS="${COMMON_RUSTFLAGS}" \
+    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin worker --bin coordinator --bin leader --bin rpc --bin verifier
 
 
 # narrow the find call to SUBDIR because if we just copy out all executables
