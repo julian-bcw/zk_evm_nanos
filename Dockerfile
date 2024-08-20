@@ -71,7 +71,6 @@ fi
 # maxdepth because binaries are in the root
 # - other folders contain build scripts etc.
 mkdir /output
-find "/artifacts"
 find "/artifacts/x86_64-unknown-linux-gnu" \
     -maxdepth 2 \
     -type f \
