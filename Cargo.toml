@@ -117,6 +117,7 @@ prover = { path = "zero_bin/prover" }
 rpc = { path = "zero_bin/rpc" }
 zero_bin_common = { path = "zero_bin/common" }
 leader = { path = "zero_bin/leader" }
+coordinator = { path = "zero_bin/coordinator" }
 
 # plonky2-related dependencies
 plonky2 = { git = "https://github.com/0xPolygonZero/plonky2.git", rev = "dc77c77f2b06500e16ad4d7f1c2b057903602eed" }

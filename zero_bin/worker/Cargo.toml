@@ -33,6 +33,12 @@ alloy = { git = "https://github.com/alloy-rs/alloy", tag = 'v0.1.1', default-fea
 # Local dependencies
 ops = { workspace = true }
 zero_bin_common = { workspace = true }
+coordinator = { workspace = true }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 jemallocator = "0.5.4"
+
+[features]
+default = ["ENV"]
+CLI = []
+ENV = []

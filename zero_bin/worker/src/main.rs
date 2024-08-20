@@ -11,6 +11,7 @@ use tokio::select;
 use tokio::signal::unix::{signal, SignalKind};
 use tokio::task;
 use zero_bin_common::prover_state::cli::CliProverStateConfig;
+use coordinator::{cfgld::build_paladin_config_from_env, psm::load_psm_from_env};
 
 mod init;
 
@@ -36,17 +37,26 @@ async fn main() -> Result<()> {
     let mut sigterm =
         signal(SignalKind::terminate()).expect("Failed to create SIGTERM signal handler");
 
-    let args = Cli::parse();
+    
+    #[cfg(feature="CLI")]
+    let (paladin, psm) = {
+        info!("Attempting to load from CLI (With partial support from .env)");
+        let args = Cli::parse();
+        let psm = args.prover_state_config.into_prover_state_manager();
+        (args.paladin, psm)
+    };
+    #[cfg(feature="ENV")]
+    let (paladin, psm) = {
+        info!("Attempting to load from ENV (Ignoring CLI)");
+        (build_paladin_config_from_env(), load_psm_from_env())
+    };
 
-    let psm = args.prover_state_config.into_prover_state_manager();
 
     info!("Worker ProverStateManager: {:?}", psm);
     
     psm.initialize()?;
 
-    
-
-    let runtime = WorkerRuntime::from_config(&args.paladin, register()).await?;
+    let runtime = WorkerRuntime::from_config(&paladin, register()).await?;
 
     info!("Built WorkerRuntime");
 

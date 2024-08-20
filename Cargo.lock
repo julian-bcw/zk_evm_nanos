@@ -6365,6 +6365,7 @@ dependencies = [
  "alloy",
  "anyhow",
  "clap",
+ "coordinator",
  "dotenvy",
  "jemallocator",
  "log",
