@@ -34,7 +34,7 @@ ARG PROFILE=release
 ENV PROFILE=${PROFILE}
 
 # statically link the C runtime (but not openssl)
-ENV COMMON_RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld -C target-feature=+crt-static'
+ENV COMMON_RUSTFLAGS='-C target-cpu=native -Zlinker-features=-lld'
 
 # Build the application.
 RUN \
@@ -53,8 +53,11 @@ cd /src
 
 # use the cache mount
 # (we will not be able to to write to e.g `/src/target` because it is bind-mounted)
-CC=clang-16 RUSTFLAGS="${COMMON_RUSTFLAGS}" \
-    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin worker --bin coordinator --bin leader --bin rpc --bin verifier
+RUSTFLAGS="${COMMON_RUSTFLAGS} -C target-feature=+crt-static" \
+    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin worker
+
+RUSTFLAGS="${COMMON_RUSTFLAGS}" \
+    CARGO_TARGET_DIR=/artifacts cargo build --locked "--profile=${PROFILE}" --target=x86_64-unknown-linux-gnu --bin coordinator --bin leader --bin rpc --bin verifier
 
 
 # narrow the find call to SUBDIR because if we just copy out all executables
